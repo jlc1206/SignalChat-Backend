@@ -9,10 +9,11 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpsPolicy;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using SignalChat.Data;
+using SignalChat.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalChat.Hubs;
+using SignalChat.Areas.Identity.Data;
 
 namespace SignalChat
 {
@@ -35,11 +36,11 @@ namespace SignalChat
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             });
 
-            services.AddDbContext<ApplicationDbContext>(options =>
+            services.AddDbContext<SignalChatContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<IdentityUser>()
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            services.AddDefaultIdentity<SignalChatUser>()
+                .AddEntityFrameworkStores<SignalChatContext>();
 
             services.AddCors();
 

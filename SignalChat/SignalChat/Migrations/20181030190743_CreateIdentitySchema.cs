@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace SignalChat.Data.Migrations
+namespace SignalChat.Migrations
 {
     public partial class CreateIdentitySchema : Migration
     {
