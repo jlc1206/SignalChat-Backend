@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using SignalChat.Hubs;
 using SignalChat.Areas.Identity.Data;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 
 namespace SignalChat
 {
@@ -39,10 +40,22 @@ namespace SignalChat
             services.AddDbContext<SignalChatContext>(options =>
                 options.UseSqlServer(
                     Configuration.GetConnectionString("DefaultConnection")));
-            services.AddDefaultIdentity<SignalChatUser>()
+            services.AddIdentity<SignalChatUser,IdentityRole>()
                 .AddEntityFrameworkStores<SignalChatContext>();
 
+            services.AddTransient<SignalChatContext>();
+            services.AddTransient<UserManager<SignalChatUser>>();
+            services.AddTransient<SignInManager<SignalChatUser>>();
+
             services.AddCors();
+
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Audience = Configuration["JwtIssuer"];
+                    options.Authority = Configuration["JwtIssuer"];
+                    options.SaveToken = true;
+                });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
             services.AddSignalR();
