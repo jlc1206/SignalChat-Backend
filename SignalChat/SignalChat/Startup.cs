@@ -12,6 +12,7 @@ using Microsoft.EntityFrameworkCore;
 using SignalChat.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using SignalChat.Hubs;
 
 namespace SignalChat
 {
@@ -40,8 +41,10 @@ namespace SignalChat
             services.AddDefaultIdentity<IdentityUser>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
+            services.AddCors();
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+            services.AddSignalR();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -58,9 +61,20 @@ namespace SignalChat
                 app.UseHsts();
             }
 
+            app.UseCors(builder =>
+                builder.AllowAnyHeader().
+                AllowAnyMethod().
+                AllowCredentials().
+                AllowAnyOrigin()
+                );
+
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+            app.UseSignalR(routes =>
+            {
+                routes.MapHub<ChatHub>("/chatHub");
+            });
 
             app.UseAuthentication();
 
