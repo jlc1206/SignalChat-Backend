@@ -34,7 +34,7 @@ namespace SignalChat
 
         [HttpPost]
         [Route("Token")]
-        public async Task<IActionResult> Login([FromBody]LoginViewModel login)
+        public async Task<IActionResult> Login(LoginViewModel login)
         {
             var result = await _signInManager.PasswordSignInAsync(login.Email, login.Password, false, false);
 
