@@ -13,5 +13,6 @@ namespace SignalChat.Areas.Identity.Data
 
         public virtual ICollection<Channel> Channels { get; set; }
         public virtual ICollection<Message> Messages { get; set; }
+        public virtual ICollection<Server> Servers { get; set; }
     }
 }

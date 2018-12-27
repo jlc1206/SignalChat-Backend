@@ -16,12 +16,6 @@ namespace SignalChat.Areas.Identity
         public void Configure(IWebHostBuilder builder)
         {
             builder.ConfigureServices((context, services) => {
-                /* services.AddDbContext<SignalChatContext>(options =>
-                    options.UseSqlServer(
-                        context.Configuration.GetConnectionString("SignalChatContextConnection")));
-
-                /* services.AddDefaultIdentity<SignalChatUser>()
-                    .AddEntityFrameworkStores<SignalChatContext>(); */
             });
         }
     }

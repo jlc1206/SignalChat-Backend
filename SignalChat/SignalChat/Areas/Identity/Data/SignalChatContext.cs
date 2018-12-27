@@ -26,5 +26,6 @@ namespace SignalChat.Models
 
         public DbSet<Channel> Channels { get; set; }
         public DbSet<Message> Messages { get; set; }
+        public DbSet<Server> Servers { get; set; }
     }
 }
