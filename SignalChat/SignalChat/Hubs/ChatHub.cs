@@ -30,11 +30,6 @@ namespace SignalChat.Hubs
             await Clients.All.SendAsync("Hello");
         }
 
-        public async Task JoinServer(int serverID)
-        {
-
-        }
-
         /// <summary>
         /// post message
         /// </summary>

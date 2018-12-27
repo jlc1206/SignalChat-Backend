@@ -12,9 +12,6 @@ namespace SignalChat.Models
         public int ID { get; set; }
         public string Name { get; set; }
 
-        public int ServerID { get; set; }
-        public virtual Server Server { get; set; }
-
         public virtual ICollection<Message> Messages { get; set; }
 
         public bool userRestricted { get; set; }
