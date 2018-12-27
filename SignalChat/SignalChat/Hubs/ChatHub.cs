@@ -21,54 +21,24 @@ namespace SignalChat.Hubs
             _dbContext = dc;
         }
 
+        /// <summary>
+        /// Test Method
+        /// </summary>
+        /// <returns></returns>
         public async Task Hello()
         {
             await Clients.All.SendAsync("Hello");
         }
 
         /// <summary>
-        /// Subscribe to a channel
-        /// </summary>
-        /// <param name="channelID"></param>
-        /// <returns></returns>
-        public async Task SubscribeChannel(int channelID)
-        {
-            var userT = _dbContext.Users.FindAsync(Context.UserIdentifier);
-            var channelT = _dbContext.Channels.FindAsync(channelID);
-
-            var user = await userT;
-            var channel = await channelT;
-            user.Channels.Add(channel);
-
-            await _dbContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// Unsubscribe to a channel
-        /// </summary>
-        /// <param name="channelID"></param>
-        /// <returns></returns>
-        public async Task UnsubscribeChannel(int channelID)
-        {
-            var userT = _dbContext.Users.FindAsync(Context.UserIdentifier);
-            var channelT = _dbContext.Channels.FindAsync(channelID);
-
-            var user = await userT;
-            var channel = await channelT;
-
-            user.Channels.Remove(channel);
-
-            await _dbContext.SaveChangesAsync();
-        }
-
-        /// <summary>
-        /// post message to specific channel
+        /// post message
         /// </summary>
         /// <param name="channelID"></param>
         /// <param name="body"></param>
         /// <returns></returns>
         public async Task PostMessage(int channelID, string body)
         {
+
             Message msg = new Message
             {
                 Content = body,
@@ -90,6 +60,17 @@ namespace SignalChat.Hubs
 
             msg.Content = body;
             _dbContext.Add(msg);
+            await _dbContext.SaveChangesAsync();
+        }
+
+        public async Task DeleteMessage(int messageID)
+        {
+            Message msg = await _dbContext.Messages.FindAsync(messageID);
+            if (msg.SignalChatUserID != Context.UserIdentifier)
+            {
+                return;
+            }
+            _dbContext.Remove(msg);
             await _dbContext.SaveChangesAsync();
         }
     }

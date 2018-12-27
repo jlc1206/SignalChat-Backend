@@ -10,9 +10,8 @@ namespace SignalChat.Areas.Identity.Data
     // Add profile data for application users by adding properties to the SignalChatUser class
     public class SignalChatUser : IdentityUser
     {
-
-        public virtual ICollection<Channel> Channels { get; set; }
+        public int CurrentServer { get; set; }
+        public int CurrentChannel { get; set; }
         public virtual ICollection<Message> Messages { get; set; }
-        public virtual ICollection<Server> Servers { get; set; }
     }
 }
