@@ -30,6 +30,11 @@ namespace SignalChat.Hubs
             await Clients.All.SendAsync("Hello");
         }
 
+        public async Task JoinServer(int serverID)
+        {
+
+        }
+
         /// <summary>
         /// post message
         /// </summary>
@@ -38,12 +43,13 @@ namespace SignalChat.Hubs
         /// <returns></returns>
         public async Task PostMessage(int channelID, string body)
         {
+            var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
 
             Message msg = new Message
             {
                 Content = body,
-                SignalChatUserID = Context.UserIdentifier,
-                ChannelID = channelID
+                SignalChatUserID = user.Id,
+                ChannelID = user.CurrentChannel
             };
 
             _dbContext.Messages.Add(msg);
@@ -59,6 +65,7 @@ namespace SignalChat.Hubs
             }
 
             msg.Content = body;
+
             _dbContext.Add(msg);
             await _dbContext.SaveChangesAsync();
         }
@@ -70,6 +77,7 @@ namespace SignalChat.Hubs
             {
                 return;
             }
+
             _dbContext.Remove(msg);
             await _dbContext.SaveChangesAsync();
         }
