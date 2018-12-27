@@ -30,13 +30,46 @@ namespace SignalChat.Hubs
             await Clients.All.SendAsync("Hello");
         }
 
+        public async Task JoinChannel(int channelID)
+        {
+            var userT = _userManager.FindByIdAsync(Context.UserIdentifier);
+            var channel = await _dbContext.Channels.FindAsync(channelID);
+            var user = await userT;
+            
+            if (channel == null)
+            {
+                return;
+            }
+
+            channel.Users.Add(user);
+            _dbContext.Add(channel);
+            await _dbContext.SaveChangesAsync();
+            
+        }
+
+        public async Task LeaveChannel(int channelID)
+        {
+            var userT = _userManager.FindByIdAsync(Context.UserIdentifier);
+            var channel = await _dbContext.Channels.FindAsync(channelID);
+            var user = await userT;
+
+            if (channel == null)
+            {
+                return;
+            }
+
+            channel.Users.Remove(user);
+            _dbContext.Add(channel);
+            await _dbContext.SaveChangesAsync();
+        }
+
         /// <summary>
         /// post message
         /// </summary>
         /// <param name="channelID"></param>
         /// <param name="body"></param>
         /// <returns></returns>
-        public async Task PostMessage(int channelID, string body)
+        public async Task PostMessage(string body)
         {
             var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
 
