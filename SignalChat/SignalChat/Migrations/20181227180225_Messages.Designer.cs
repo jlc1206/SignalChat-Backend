@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SignalChat.Models;
 
 namespace SignalChat.Migrations
 {
     [DbContext(typeof(SignalChatContext))]
-    partial class SignalChatContextModelSnapshot : ModelSnapshot
+    [Migration("20181227180225_Messages")]
+    partial class Messages
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -180,44 +182,6 @@ namespace SignalChat.Migrations
                     b.ToTable("AspNetUsers");
                 });
 
-            modelBuilder.Entity("SignalChat.Models.Channel", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("Name");
-
-                    b.Property<string>("SignalChatUserId");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("SignalChatUserId");
-
-                    b.ToTable("Channels");
-                });
-
-            modelBuilder.Entity("SignalChat.Models.Message", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<int>("ChannelID");
-
-                    b.Property<string>("Content");
-
-                    b.Property<string>("SignalChatUserID");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("ChannelID");
-
-                    b.HasIndex("SignalChatUserID");
-
-                    b.ToTable("Messages");
-                });
-
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
                 {
                     b.HasOne("Microsoft.AspNetCore.Identity.IdentityRole")
@@ -261,25 +225,6 @@ namespace SignalChat.Migrations
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("SignalChat.Models.Channel", b =>
-                {
-                    b.HasOne("SignalChat.Areas.Identity.Data.SignalChatUser")
-                        .WithMany("Channels")
-                        .HasForeignKey("SignalChatUserId");
-                });
-
-            modelBuilder.Entity("SignalChat.Models.Message", b =>
-                {
-                    b.HasOne("SignalChat.Models.Channel", "Channel")
-                        .WithMany("Messages")
-                        .HasForeignKey("ChannelID")
-                        .OnDelete(DeleteBehavior.Cascade);
-
-                    b.HasOne("SignalChat.Areas.Identity.Data.SignalChatUser", "SignalChatUser")
-                        .WithMany("Messages")
-                        .HasForeignKey("SignalChatUserID");
                 });
 #pragma warning restore 612, 618
         }

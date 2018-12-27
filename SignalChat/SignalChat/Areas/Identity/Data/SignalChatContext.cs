@@ -23,5 +23,8 @@ namespace SignalChat.Models
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
         }
+
+        public DbSet<Channel> Channels { get; set; }
+        public DbSet<Message> Messages { get; set; }
     }
 }
