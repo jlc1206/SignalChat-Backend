@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -36,6 +37,10 @@ namespace SignalChat
         [Route("Token")]
         public async Task<IActionResult> Login(LoginViewModel login)
         {
+            if(!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
             var result = await _signInManager.PasswordSignInAsync(login.Email, login.Password, false, false);
 
             if (result.Succeeded)
@@ -66,13 +71,22 @@ namespace SignalChat
             return BadRequest(ModelState.ValidationState);
         }
 
+        [HttpGet]
+        [Authorize]
+        [Route("Verify")]
+        public async Task<IActionResult> VerifyToken()
+        {
+            return Ok(HttpContext.User.Identity.Name);
+        }
+
         private string GenerateJwtToken(string email, SignalChatUser user)
         {
             var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, email),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(ClaimTypes.NameIdentifier, user.Id)
+                new Claim(ClaimTypes.NameIdentifier, user.Id),
+                new Claim(ClaimTypes.Name, user.UserName),
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JwtKey"]));

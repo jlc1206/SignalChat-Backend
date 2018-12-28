@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using SignalChat.Areas.Identity.Data;
 using SignalChat.Models;
 using System;
@@ -10,6 +13,7 @@ using System.Threading.Tasks;
 
 namespace SignalChat.Hubs
 {
+    [Authorize]
     public class ChatHub : Hub
     {
         private UserManager<SignalChatUser> _userManager;
@@ -32,8 +36,8 @@ namespace SignalChat.Hubs
 
         public async Task JoinChannel(int channelID)
         {
-            var userT = _userManager.FindByIdAsync(Context.UserIdentifier);
-            var channel = await _dbContext.Channels.FindAsync(channelID);
+            var userT = _userManager.FindByNameAsync(Context.User.Identity.Name);
+            var channel = await _dbContext.Channels.Include(c => c.Users).FirstAsync(c => c.ID == channelID);
             var user = await userT;
             
             if (channel == null)
@@ -41,9 +45,13 @@ namespace SignalChat.Hubs
                 return;
             }
 
-            channel.Users.Add(user);
-            _dbContext.Add(channel);
-            await _dbContext.SaveChangesAsync();
+            if (user == null)
+            {
+                return;
+            }
+
+            user.CurrentChannel = channelID;
+            await _userManager.UpdateAsync(user);
             
         }
 
@@ -57,9 +65,6 @@ namespace SignalChat.Hubs
             {
                 return;
             }
-
-            channel.Users.Remove(user);
-            _dbContext.Add(channel);
             await _dbContext.SaveChangesAsync();
         }
 
@@ -71,7 +76,7 @@ namespace SignalChat.Hubs
         /// <returns></returns>
         public async Task PostMessage(string body)
         {
-            var user = await _userManager.FindByIdAsync(Context.UserIdentifier);
+            var user = await _userManager.FindByNameAsync(Context.User.Identity.Name);
 
             Message msg = new Message
             {

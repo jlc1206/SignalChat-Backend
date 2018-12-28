@@ -15,6 +15,11 @@ using Microsoft.Extensions.DependencyInjection;
 using SignalChat.Hubs;
 using SignalChat.Areas.Identity.Data;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Microsoft.AspNetCore.SignalR;
+using System.Web;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace SignalChat
 {
@@ -30,35 +35,93 @@ namespace SignalChat
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<CookiePolicyOptions>(options =>
+            /*services.Configure<CookiePolicyOptions>(options =>
             {
                 // This lambda determines whether user consent for non-essential cookies is needed for a given request.
                 options.CheckConsentNeeded = context => true;
                 options.MinimumSameSitePolicy = SameSiteMode.None;
-            });
+            });*/
 
             services.AddDbContext<SignalChatContext>(options =>
-                options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
-            services.AddIdentity<SignalChatUser,IdentityRole>()
-                .AddEntityFrameworkStores<SignalChatContext>();
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddIdentity<SignalChatUser, IdentityRole>()
+                .AddEntityFrameworkStores<SignalChatContext>()
+                .AddDefaultTokenProviders();
 
-            services.AddTransient<SignalChatContext>();
+            // services.AddTransient<SignalChatContext>();
             services.AddTransient<UserManager<SignalChatUser>>();
             services.AddTransient<SignInManager<SignalChatUser>>();
 
-            services.AddCors();
-
-            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+            services.AddCors(options => options.AddPolicy("CorsPolicy",
+                builder =>
                 {
-                    options.Audience = Configuration["JwtIssuer"];
-                    options.Authority = Configuration["JwtIssuer"];
-                    options.SaveToken = true;
-                });
+                    builder
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowAnyOrigin()
+                    .AllowCredentials();
+                }));
+            services.AddAuthorization();
+            services.AddAuthentication(options =>
+            {
+                // Identity made Cookie authentication the default.
+                // However, we want JWT Bearer Auth to be the default.
+                options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+                options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            })
+            .AddJwtBearer(options =>
+             {
+                 options.IncludeErrorDetails = true;
+                 options.SaveToken = true;
+                 options.SecurityTokenValidators.Clear();
+                 options.SecurityTokenValidators.Add(new JwtSecurityTokenHandler { InboundClaimTypeMap = new Dictionary<string, string>() });
+                 // Configure JWT Bearer Auth to expect our security key
+                 options.TokenValidationParameters =
+                  new TokenValidationParameters
+                  {
+                      LifetimeValidator = (before, expires, token, param) =>
+                      {
+                          return expires > DateTime.UtcNow;
+                      },
+                      ValidateAudience = false,
+                      ValidateIssuer = false,
+                      ValidateActor = false,
+                      ValidateLifetime = true,
+                      IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["JwtKey"]))
+                  };
+
+                 // We have to hook the OnMessageReceived event in order to
+                 // allow the JWT authentication handler to read the access
+                 // token from the query string when a WebSocket or 
+                 // Server-Sent Events request comes in.
+                 options.Events = new JwtBearerEvents
+                 {
+                     OnMessageReceived = context =>
+                     {
+                         var accessToken = HttpUtility.UrlDecode(context.Request.Query["access_token"]);
+
+                         // If the request is for our hub...
+                         var path = context.HttpContext.Request.Path;
+                         if (!string.IsNullOrEmpty(accessToken))
+                         {
+                             // Read the token out of the query string
+                             context.Token = accessToken;
+                         }
+                         return Task.CompletedTask;
+                     }
+                 };
+             });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
-            services.AddSignalR();
+            services.AddSignalR(options =>
+            {
+                if (Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development")
+                {
+                    options.EnableDetailedErrors = true;
+                }
+            });
+
+            services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -75,22 +138,18 @@ namespace SignalChat
                 app.UseHsts();
             }
 
-            app.UseCors(builder =>
-                builder.AllowAnyHeader().
-                AllowAnyMethod().
-                AllowCredentials().
-                AllowAnyOrigin()
-                );
+            app.UseCors("CorsPolicy");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();
             app.UseCookiePolicy();
+            app.UseAuthentication();
             app.UseSignalR(routes =>
             {
                 routes.MapHub<ChatHub>("/chatHub");
             });
 
-            app.UseAuthentication();
+
 
             app.UseMvc();
         }
