@@ -34,7 +34,7 @@ namespace SignalChat.Hubs
             await Clients.All.SendAsync("Hello");
         }
 
-        public async Task JoinChannel(int channelID)
+        public async Task SwitchChannel(int channelID)
         {
             var userT = _userManager.FindByNameAsync(Context.User.Identity.Name);
             var channel = await _dbContext.Channels.Include(c => c.Users).FirstAsync(c => c.ID == channelID);
@@ -53,19 +53,13 @@ namespace SignalChat.Hubs
             user.CurrentChannel = channelID;
             await _userManager.UpdateAsync(user);
             
-        }
+        }        
 
-        public async Task LeaveChannel(int channelID)
+        public async Task GetMessages()
         {
-            var userT = _userManager.FindByIdAsync(Context.UserIdentifier);
-            var channel = await _dbContext.Channels.FindAsync(channelID);
-            var user = await userT;
-
-            if (channel == null)
-            {
-                return;
-            }
-            await _dbContext.SaveChangesAsync();
+            var user = await _userManager.FindByNameAsync(Context.User.Identity.Name);
+            var messages = await _dbContext.Messages.Where(m => m.ChannelID == user.CurrentChannel).OrderByDescending(m => m.ID).Select(m => new {ID=m.ID, Content= m.Content, UserID=m.SignalChatUserID }).ToArrayAsync();
+            await Clients.Caller.SendAsync("LoadMessages", messages);
         }
 
         /// <summary>
