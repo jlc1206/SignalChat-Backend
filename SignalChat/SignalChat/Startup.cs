@@ -44,7 +44,7 @@ namespace SignalChat
 
             services.AddDbContext<SignalChatContext>(options =>
                 options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddIdentity<SignalChatUser, IdentityRole>()
+            services.AddIdentity<SignalChatUser, SignalChatRole>()
                 .AddEntityFrameworkStores<SignalChatContext>()
                 .AddDefaultTokenProviders();
 

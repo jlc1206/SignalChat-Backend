@@ -14,10 +14,8 @@ namespace SignalChat.Models
 
         public virtual ICollection<Message> Messages { get; set; }
 
-        public bool userRestricted { get; set; }
-        public virtual ICollection<SignalChatUser> Users { get; set; }
-
-        public bool roleRestricted { get; set; }
-        public virtual ICollection<IdentityRole> Roles { get; set; }
+        public bool EnableWhitelist { get; set; }
+        public virtual ICollection<ChannelUsers> Users { get; set; }        
+        public virtual ICollection<ChannelGroups> Groups { get; set; }
     }
 }

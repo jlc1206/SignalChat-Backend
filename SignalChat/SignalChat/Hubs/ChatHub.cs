@@ -34,31 +34,52 @@ namespace SignalChat.Hubs
             await Clients.All.SendAsync("Hello");
         }
 
-        public async Task SwitchChannel(int channelID)
+        public async Task JoinChannel(int channelID)
         {
-            var userT = _userManager.FindByNameAsync(Context.User.Identity.Name);
-            var channel = await _dbContext.Channels.Include(c => c.Users).FirstAsync(c => c.ID == channelID);
-            var user = await userT;
-            
-            if (channel == null)
+            var userId = Context.UserIdentifier;
+            var CU = await _dbContext.ChannelUsers.SingleOrDefaultAsync(cu => cu.UserID == userId && cu.ChannelID == channelID);
+            var channel = await _dbContext.Channels.SingleOrDefaultAsync(c => c.ID == channelID);
+
+            if (userId == null)
             {
                 return;
             }
 
-            if (user == null)
+            if (CU.Channel.EnableWhitelist)
             {
-                return;
+                var CG = await _dbContext.ChannelGroups.Where(cg => cg.ChannelID == channelID).ToListAsync();
+                var hasRole = false;
+                foreach(var group in CG)
+                {
+                    if (Context.User.IsInRole(group.Group.Name))
+                    {
+                        hasRole = true;
+                    }
+                }
+                if (hasRole || CU.Status == 1)
+                {
+                    CU.isJoined = true;
+                    _dbContext.Entry(CU).State = EntityState.Modified;
+                }
+                else
+                {
+                    return;
+                }
             }
+            else
+            {
+                CU = new ChannelUsers { ChannelID = channelID, UserID = userId, isJoined = true, Status = 0 };
+                _dbContext.Add(CU);
+            }            
 
-            user.CurrentChannel = channelID;
-            await _userManager.UpdateAsync(user);
-            
-        }        
+            await _dbContext.SaveChangesAsync();
+
+        }
 
         public async Task GetMessages()
         {
             var user = await _userManager.FindByNameAsync(Context.User.Identity.Name);
-            var messages = await _dbContext.Messages.Where(m => m.ChannelID == user.CurrentChannel).OrderByDescending(m => m.ID).Select(m => new {ID=m.ID, Content= m.Content, UserID=m.SignalChatUserID }).ToArrayAsync();
+            var messages = await _dbContext.Messages.Where(m => m.ChannelID == user.CurrentChannel).OrderByDescending(m => m.ID).Select(m => new { ID = m.ID, Content = m.Content, UserID = m.SignalChatUserID }).ToArrayAsync();
             await Clients.Caller.SendAsync("LoadMessages", messages);
         }
 

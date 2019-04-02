@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SignalChat.Models;
 
 namespace SignalChat.Migrations
 {
     [DbContext(typeof(SignalChatContext))]
-    partial class SignalChatContextModelSnapshot : ModelSnapshot
+    [Migration("20190401203731_ChannelGroupsAndUsers")]
+    partial class ChannelGroupsAndUsers
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -193,9 +195,11 @@ namespace SignalChat.Migrations
                         .ValueGeneratedOnAdd()
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<bool>("EnableWhitelist");
-
                     b.Property<string>("Name");
+
+                    b.Property<bool>("roleRestricted");
+
+                    b.Property<bool>("userRestricted");
 
                     b.HasKey("ID");
 
@@ -220,10 +224,6 @@ namespace SignalChat.Migrations
                     b.Property<int>("ChannelID");
 
                     b.Property<string>("UserID");
-
-                    b.Property<int>("Status");
-
-                    b.Property<bool>("isJoined");
 
                     b.HasKey("ChannelID", "UserID");
 

@@ -22,9 +22,31 @@ namespace SignalChat.Models
             // Customize the ASP.NET Identity model and override the defaults if needed.
             // For example, you can rename the ASP.NET Identity table names and more.
             // Add your customizations after calling base.OnModelCreating(builder);
+            builder.Entity<ChannelUsers>().HasKey(cu => new { cu.ChannelID, cu.UserID });
+            builder.Entity<ChannelUsers>().
+                HasOne(cu => cu.Channel).
+                WithMany(c => c.Users).
+                HasForeignKey(cu => cu.ChannelID);
+            builder.Entity<ChannelUsers>().
+                HasOne(cu => cu.SignalChatUser).
+                WithMany(s => s.Channels).
+                HasForeignKey(cu => cu.UserID);
+
+            builder.Entity<ChannelGroups>().HasKey(cg => new { cg.ChannelID, cg.GroupID });
+            builder.Entity<ChannelGroups>().
+                HasOne(cg => cg.Channel).
+                WithMany(c => c.Groups).
+                HasForeignKey(cg => cg.ChannelID);
+            builder.Entity<ChannelGroups>().
+                HasOne(cg => cg.Group).
+                WithMany(g => g.Channels).
+                HasForeignKey(cg => cg.GroupID);
+
         }
 
         public DbSet<Channel> Channels { get; set; }
+        public DbSet<ChannelUsers> ChannelUsers { get; set; }
+        public DbSet<ChannelGroups> ChannelGroups { get; set; }
         public DbSet<Message> Messages { get; set; }
     }
 }

@@ -12,5 +12,6 @@ namespace SignalChat.Areas.Identity.Data
     {
         public int CurrentChannel { get; set; }
         public virtual ICollection<Message> Messages { get; set; }
+        public virtual ICollection<ChannelUsers> Channels { get; set; }
     }
 }

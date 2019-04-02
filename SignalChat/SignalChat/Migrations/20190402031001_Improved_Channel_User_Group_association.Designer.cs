@@ -3,15 +3,17 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using SignalChat.Models;
 
 namespace SignalChat.Migrations
 {
     [DbContext(typeof(SignalChatContext))]
-    partial class SignalChatContextModelSnapshot : ModelSnapshot
+    [Migration("20190402031001_Improved_Channel_User_Group_association")]
+    partial class Improved_Channel_User_Group_association
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
