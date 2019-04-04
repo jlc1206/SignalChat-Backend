@@ -76,6 +76,25 @@ namespace SignalChat.Hubs
 
         }
 
+        public async Task LeaveChannel(int channelId)
+        {
+            var CU = await _dbContext.ChannelUsers.SingleOrDefaultAsync(cu => cu.UserID == Context.UserIdentifier && cu.ChannelID == channelId);
+            if(CU == null)
+            {
+                return;
+            }
+            if (CU.Status == 1)
+            {
+                CU.isJoined = false;
+                _dbContext.Entry(CU).State = EntityState.Modified;
+            }
+            else
+            {
+                _dbContext.ChannelUsers.Remove(CU);
+            }
+            await _dbContext.SaveChangesAsync();
+        }
+
         public async Task GetMessages()
         {
             var user = await _userManager.FindByNameAsync(Context.User.Identity.Name);
